@@ -1,0 +1,10 @@
+.venv/
+.uv-cache/
+__pycache__/
+*.py[cod]
+.env
+/logs/
+.idea/
+.DS_Store
+# embedding 模型文件，体积大不入库
+docker/embedding/
