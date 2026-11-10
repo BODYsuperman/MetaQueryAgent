@@ -1,5 +1,6 @@
 from dataclasses import asdict
 
+from elastic_transport import ObjectApiResponse
 from elasticsearch import AsyncElasticsearch
 
 from app.entities.value_info import ValueInfo
@@ -48,6 +49,33 @@ class ValueESRepository:
                 )
                 batch_operations.append(asdict(value_info))
             await self.client.bulk(operations= batch_operations)
+
+
+        """
+        
+    POST value_index/_search
+    {
+    
+        "from":0,
+        "size":75,
+    
+        "query": {
+        "match": {
+            "value":"广东地区"
+        }
+      },
+    
+      "min_score" :0.6
+    
+    }
+        """
+    async def search(self, keyword: str, score_threshhold:float = 0.6, limit:int=10):
+        res:ObjectApiResponse = await self.client.search(index=self.index_name, query={"match": {"value": keyword}},
+                                          min_score=score_threshhold, size=limit)
+
+        return [ValueInfo(**hit["_source"]) for hit in res["hits"]["hits"]]
+
+
 
 
 

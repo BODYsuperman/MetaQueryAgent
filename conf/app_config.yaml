@@ -39,6 +39,6 @@ es:
   index_name: data_agent
 
 llm:
-  model_name: Pro/zai-org/GLM-5.1
-  api_key: ${oc.env:LLM_API_KEY}
-  base_url: https://api.siliconflow.cn/v1
+  model_name: qwen3.8-max
+  api_key: sk-sp-H.DHDIYI.asRG.MEUCIQCsHne-prjTeamTYfsvIkBUz24h5hSviaiBeOjHzmF_kQIgSK0RS9EEvi5jVADbyfp813ggEhnRsiXUsA7_grt4CKg
+  base_url: https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1
