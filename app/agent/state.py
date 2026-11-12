@@ -71,3 +71,7 @@ class DataAgentState(TypedDict):
     sql: str  # 生成或校正后的SQL
 
     error: str  # 校验 SQL 时出现的错误信息
+
+    session_id: str  # 会话 id，多轮问数用
+    original_query: str  # 用户原始输入，改写不覆盖它
+    history: list[dict]  # 本轮开始时的会话历史快照（TurnRecord 的 dict 形式）
