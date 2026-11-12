@@ -40,7 +40,8 @@ export default {
         // 文字层级
         ink: "#16191a",
         muted: "#5c6461",
-        faint: "#8b938f",
+        // 对比度满足 WCAG AA（白底 ≈4.6:1）；原 #8b938f 仅 3.1:1
+        faint: "#6b7470",
         // 语义色
         success: "#1a7f4e",
         warning: "#b4761a",

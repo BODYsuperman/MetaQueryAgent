@@ -254,18 +254,30 @@ export default function App() {
                 <div className="truncate text-xs text-faint">FastAPI SSE · LangGraph</div>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={clearConversation}
-              disabled={messages.length === 0 || isStreaming}
-              className={cn(
-                "grid h-8 w-8 place-items-center rounded-lg text-muted transition hover:bg-bg hover:text-ink disabled:cursor-not-allowed disabled:opacity-35",
-              )}
-              title="清空对话"
-              aria-label="清空对话"
-            >
-              <Eraser className="h-4 w-4" aria-hidden="true" />
-            </button>
+            <div className="flex items-center gap-1">
+              {/* 移动端侧栏隐藏，新对话入口移到顶栏 */}
+              <button
+                type="button"
+                onClick={clearConversation}
+                disabled={isStreaming}
+                className="flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-40 md:hidden"
+              >
+                <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />
+                新对话
+              </button>
+              <button
+                type="button"
+                onClick={clearConversation}
+                disabled={messages.length === 0 || isStreaming}
+                className={cn(
+                  "grid h-8 w-8 place-items-center rounded-lg text-muted transition hover:bg-bg hover:text-ink disabled:cursor-not-allowed disabled:opacity-35",
+                )}
+                title="清空对话"
+                aria-label="清空对话"
+              >
+                <Eraser className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
           </header>
 
           <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
