@@ -2,7 +2,7 @@
  * 聊天消息气泡组件
  * 组合展示用户问题、智能体回复、执行流程和结果表格
  */
-import { Bot, Copy, UserRound } from "lucide-react";
+import { Bot, Copy } from "lucide-react";
 import { ResultTable } from "./ResultTable";
 import { StepRail } from "./StepRail";
 import { cn, formatTime, toClipboardText } from "../lib/format";
@@ -16,30 +16,41 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
     await navigator.clipboard.writeText(text);
   };
 
-  return (
-    <article className={cn("group flex gap-3", isUser && "justify-end")}>
-      {!isUser && (
-        <div className="mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ink text-parchment">
-          <Bot className="h-4 w-4" aria-hidden="true" />
+  if (isUser) {
+    return (
+      <div className="flex justify-end">
+        <div className="max-w-[75%]">
+          <div className="rounded-xl rounded-br-sm bg-primary-soft px-4 py-2.5 text-[14px] leading-6 text-ink">
+            <p className="whitespace-pre-wrap">{message.content}</p>
+          </div>
+          <div className="mt-1 pr-1 text-right text-[11px] text-faint">
+            {formatTime(message.createdAt)}
+          </div>
         </div>
-      )}
+      </div>
+    );
+  }
 
-      <div className={cn("max-w-[920px] flex-1", isUser && "flex max-w-[760px] justify-end")}>
-        <div
-          className={cn(
-            "relative border px-5 py-4 shadow-line",
-            isUser
-              ? "border-ink/80 bg-ink text-parchment"
-              : "border-ink/10 bg-[#fffaf1]/78 text-ink backdrop-blur",
-          )}
-        >
+  return (
+    <article className="group flex gap-3">
+      <div className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary text-white">
+        <Bot className="h-4 w-4" aria-hidden="true" />
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <div className="relative rounded-xl rounded-tl-sm border border-border bg-surface px-4 py-3 shadow-sm">
           <div className="flex items-start justify-between gap-3">
-            <p className="whitespace-pre-wrap text-[15px] leading-7">{message.content}</p>
-            {!isUser && message.status !== "streaming" && (
+            <p className="whitespace-pre-wrap text-[14px] leading-6 text-ink">
+              {message.content}
+              {message.status === "streaming" && (
+                <span className="ml-0.5 inline-block h-4 w-1.5 animate-pulse rounded-sm bg-primary align-text-bottom" />
+              )}
+            </p>
+            {message.status !== "streaming" && (
               <button
                 type="button"
                 onClick={copy}
-                className="shrink-0 rounded-full p-1.5 text-ink/45 opacity-0 outline-none transition hover:bg-ink/5 hover:text-ink focus:opacity-100 focus:ring-2 focus:ring-moss/40 group-hover:opacity-100"
+                className="shrink-0 rounded-md p-1.5 text-faint opacity-0 outline-none transition hover:bg-bg hover:text-ink focus:opacity-100 focus:ring-2 focus:ring-primary/30 group-hover:opacity-100"
                 title="复制"
                 aria-label="复制"
               >
@@ -49,30 +60,18 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
           </div>
 
           {message.error && (
-            <div className="mt-3 border border-tomato/30 bg-tomato/10 px-3 py-2 text-sm text-tomato">
+            <div className="mt-3 rounded-lg border border-danger/25 bg-danger/10 px-3 py-2 text-[13px] leading-5 text-danger">
               {message.error}
             </div>
           )}
 
-          {!isUser && <StepRail steps={message.steps} />}
-          {!isUser && message.result !== undefined && <ResultTable data={message.result} />}
-
-          <div
-            className={cn(
-              "mt-3 text-xs",
-              isUser ? "text-parchment/55" : "text-ink/45",
-            )}
-          >
-            {formatTime(message.createdAt)}
-          </div>
+          <StepRail steps={message.steps} />
+          {message.result !== undefined && <ResultTable data={message.result} />}
+        </div>
+        <div className="mt-1 pl-1 text-[11px] text-faint">
+          {formatTime(message.createdAt)}
         </div>
       </div>
-
-      {isUser && (
-        <div className="mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-moss text-white">
-          <UserRound className="h-4 w-4" aria-hidden="true" />
-        </div>
-      )}
     </article>
   );
 }
