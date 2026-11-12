@@ -45,5 +45,5 @@ sql_safety:
 
 llm:
   model_name: qwen3.8-max
-  api_key: sk-sp-H.DHDIYI.asRG.MEUCIQCsHne-prjTeamTYfsvIkBUz24h5hSviaiBeOjHzmF_kQIgSK0RS9EEvi5jVADbyfp813ggEhnRsiXUsA7_grt4CKg
+  api_key: ${oc.env:LLM_API_KEY}
   base_url: https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1
