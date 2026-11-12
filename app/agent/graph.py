@@ -14,6 +14,7 @@ from app.agent.nodes.merge_retrieved_info import merge_retrieved_info
 from app.agent.nodes.recall_column import recall_column
 from app.agent.nodes.recall_metric import recall_metric
 from app.agent.nodes.recall_value import recall_value
+from app.agent.nodes.rewrite_query import rewrite_query
 from app.agent.nodes.run_sql import run_sql
 from app.agent.nodes.validate_sql import validate_sql
 from app.agent.state import DataAgentState
@@ -36,6 +37,7 @@ from app.repositories.qdrant.metric_qdrant_repository import MetricQdrantReposit
 graph_builder = StateGraph(state_schema= DataAgentState, context_schema= DataAgentState)
 
 graph_builder.add_node("extract_keywords", extract_keywords)
+graph_builder.add_node("rewrite_query", rewrite_query)
 graph_builder.add_node("recall_column", recall_column)
 graph_builder.add_node("recall_value", recall_value)
 graph_builder.add_node("recall_metric", recall_metric)
@@ -50,7 +52,9 @@ graph_builder.add_node("run_sql", run_sql)
 
 
 
-graph_builder.add_edge(START, "extract_keywords")
+# 追问先经改写节点补齐上下文（无历史时直接跳过），再进入原有关键词抽取链路
+graph_builder.add_edge(START, "rewrite_query")
+graph_builder.add_edge("rewrite_query", "extract_keywords")
 graph_builder.add_edge("extract_keywords", "recall_column")
 graph_builder.add_edge("extract_keywords", "recall_value")
 graph_builder.add_edge("extract_keywords", "recall_metric")
@@ -106,7 +110,12 @@ if __name__ == '__main__':
             value_es_repository = ValueESRepository(es_client_manager.client)
 
             # 当前只需要传入原始问题，后续节点会逐步写回召回、过滤和额外上下文结果
-            state = DataAgentState(query="统计全国各分类商品去年卖了多少钱？")
+            state = DataAgentState(
+                query="统计全国各分类商品去年卖了多少钱？",
+                original_query="统计全国各分类商品去年卖了多少钱？",
+                session_id="debug",
+                history=[],
+            )
             context = DataAgentContext(
                 column_qdrant_repository=column_qdrant_repository,
                 embedding_client=embedding_client_manager.client,
