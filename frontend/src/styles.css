@@ -1,6 +1,6 @@
 /**
  * 全局样式入口
- * 加载 Tailwind 层并定义页面基础样式与背景纹理
+ * 加载 Tailwind 层并定义页面基础样式
  */
 @tailwind base;
 @tailwind components;
@@ -26,7 +26,7 @@ body,
 
 body {
     margin: 0;
-    background: #f7f1e8;
+    background: #f7f8f8;
     overflow: hidden;
 }
 
@@ -36,18 +36,7 @@ textarea {
 }
 
 ::selection {
-    background: rgba(47, 107, 79, 0.2);
-}
-
-.grain {
-    opacity: 0.32;
-    background-image: radial-gradient(
-        circle at 1px 1px,
-        rgba(32, 32, 29, 0.18) 1px,
-        transparent 0
-    );
-    background-size: 18px 18px;
-    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), transparent 72%);
+    background: rgba(26, 127, 78, 0.2);
 }
 
 @media (prefers-reduced-motion: reduce) {
