@@ -1,6 +1,8 @@
-# MetaQuery Agent（掌柜问数）
+# MetaQuery Agent
 
-> 基于 LangGraph 的电商智能问数系统：用自然语言查询数据仓库，自动完成语义检索、SQL 生成、安全校验与执行，支持多轮追问。
+**English** | [简体中文](README.zh-CN.md)
+
+> A LangGraph-based conversational analytics system for e-commerce: query the data warehouse in natural language, with automatic semantic retrieval, SQL generation, safety validation, and execution — including multi-turn follow-up questions.
 
 [![Python](https://img.shields.io/badge/Python-3.14%2B-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-SSE%20API-009688.svg)](https://fastapi.tiangolo.com/)
@@ -8,107 +10,164 @@
 [![React](https://img.shields.io/badge/React-19-61DAFB.svg)](https://react.dev/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1.svg)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://www.docker.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 效果演示
+## Demo
 
-![运行效果](docs/images/example_output.gif)
+![Demo](docs/images/example_output.gif)
 
-## 功能特性
+## Features
 
-- **自然语言问数**：输入"统计全国各分类商品去年卖了多少钱？"，自动生成 SQL、执行并返回结构化结果
-- **多路混合召回**：字段（Qdrant 向量）、指标（Qdrant 向量）、取值（Elasticsearch 全文）三路并行检索，LLM 过滤精排
-- **SQL 生成闭环**：生成 → EXPLAIN 校验 → 失败自动纠错 → 执行
-- **SQL 安全防护**：只读限制（sqlglot AST）+ 黑名单关键字 + 查询超时 + 结果行数限制，详见 [docs/sql_safety.md](docs/sql_safety.md)
-- **多轮追问**：会话记忆 + 问题改写，支持"那上个月呢？"这类上下文追问，详见 [docs/multi_turn_query.md](docs/multi_turn_query.md)
-- **SSE 流式反馈**：逐节点推送执行进度，前端实时展示 13 步 Agent 流程状态
+- **Natural-language querying**: ask "What was last year's revenue per product category nationwide?" — the agent generates SQL, executes it, and returns structured results
+- **Multi-route hybrid retrieval**: fields (Qdrant vectors), metrics (Qdrant vectors), and values (Elasticsearch full-text) retrieved in parallel, then filtered and re-ranked by the LLM
+- **Closed-loop SQL generation**: generate → EXPLAIN validation → automatic self-correction on failure → execute
+- **SQL safety guardrails**: read-only enforcement (sqlglot AST) + keyword blacklist + query timeout + result row limit — see [docs/sql_safety.md](docs/sql_safety.md)
+- **Multi-turn follow-ups**: session memory + question rewriting supports contextual follow-ups like "What about last month?" — see [docs/multi_turn_query.md](docs/multi_turn_query.md)
+- **SSE streaming feedback**: per-node progress events let the frontend show the live status of the 13-step agent pipeline
 
-## 系统架构
+## Architecture
 
-![系统架构图](docs/images/metaquery-agent-system-architecture.svg)
+![System architecture](docs/images/metaquery-agent-system-architecture.svg)
 
-核心链路（LangGraph）：
+Core pipeline (LangGraph):
 
 ```
-问题改写(多轮) → 关键词抽取 → 字段/指标/取值三路召回 → 信息合并
-→ 指标/表过滤 → 补充上下文 → 生成 SQL → 校验 SQL ⇄ 校正 SQL → 执行查询
+Question rewriting (multi-turn) → Keyword extraction → Field/Metric/Value triple retrieval → Info merging
+→ Metric/Table filtering → Context enrichment → SQL generation → SQL validation ⇄ SQL correction → Query execution
 ```
 
-元数据知识库由 `conf/meta_config.yaml` 声明（表/字段/指标的描述与别名），
-通过构建脚本写入 Meta MySQL、Qdrant 向量库与 ES 索引，供检索链路使用。
+The metadata knowledge base is declared in `conf/meta_config.yaml` (descriptions and aliases for tables/fields/metrics) and written by the build script into Meta MySQL, the Qdrant vector store, and ES indexes for use by the retrieval pipeline.
 
-## 技术栈
+## Tech Stack
 
-| 层 | 技术 |
-|----|------|
-| Agent 编排 | LangGraph + LangChain |
-| API 服务 | FastAPI（SSE 流式响应） |
-| LLM | OpenAI 兼容接口（`conf/app_config.yaml` 配置） |
-| 数据仓储 | SQLAlchemy 2 (async) + asyncmy → MySQL 8 |
-| 向量检索 | Qdrant + BAAI/bge-large-zh-v1.5（HuggingFace TEI 部署） |
-| 全文检索 | Elasticsearch 8 |
-| SQL 安全 | sqlglot AST 解析 |
-| 前端 | React 19 + TypeScript + Vite 6 + Tailwind CSS 3 |
-| 配置管理 | OmegaConf + python-dotenv |
+| Layer | Technology |
+|-------|------------|
+| Agent orchestration | LangGraph + LangChain |
+| API service | FastAPI (SSE streaming responses) |
+| LLM | OpenAI-compatible API (configured in `conf/app_config.yaml`) |
+| Data warehouse access | SQLAlchemy 2 (async) + asyncmy → MySQL 8 |
+| Vector retrieval | Qdrant + BAAI/bge-large-zh-v1.5 (deployed via HuggingFace TEI) |
+| Full-text retrieval | Elasticsearch 8 |
+| SQL safety | sqlglot AST parsing |
+| Frontend | React 19 + TypeScript + Vite 6 + Tailwind CSS 3 |
+| Configuration | OmegaConf + python-dotenv |
 
-## 项目结构
+## Project Structure
 
 ```
 data-agent/
 ├── app/
-│   ├── agent/          # LangGraph 图定义、13 个节点、状态与上下文
-│   ├── api/            # FastAPI 路由、SSE 接口、依赖注入
-│   ├── clients/        # MySQL/Qdrant/ES/Embedding 客户端管理
-│   ├── conf/           # 配置 dataclass 与加载
-│   ├── core/           # 日志、请求上下文、SQL 安全检查
-│   ├── entities/       # 元数据实体（表/字段/指标/取值）
-│   ├── models/         # ORM 模型
-│   ├── prompt/         # 提示词加载器
-│   ├── repositories/   # 仓储层（meta/dw MySQL、Qdrant、ES）
-│   ├── scripts/        # 元数据知识库构建脚本
-│   └── services/       # 查询服务、会话存储
+│   ├── agent/          # LangGraph graph definition, 13 nodes, state & context
+│   ├── api/            # FastAPI routes, SSE endpoints, dependency injection
+│   ├── clients/        # MySQL/Qdrant/ES/Embedding client management
+│   ├── conf/           # Config dataclasses & loading
+│   ├── core/           # Logging, request context, SQL safety checks
+│   ├── entities/       # Metadata entities (table/field/metric/value)
+│   ├── models/         # ORM models
+│   ├── prompt/         # Prompt loader
+│   ├── repositories/   # Repository layer (meta/dw MySQL, Qdrant, ES)
+│   ├── scripts/        # Metadata knowledge base build scripts
+│   └── services/       # Query service, session storage
 ├── conf/               # app_config.yaml / meta_config.yaml
-├── docker/             # docker-compose（MySQL/ES/Kibana/Qdrant/TEI）
-├── frontend/           # React 聊天前端（独立 package.json，pnpm 管理）
-├── prompts/            # 8 个 LLM 提示词模板
-├── tests/              # pytest 单元测试（45 个）
-└── docs/               # 功能文档（SQL 安全、多轮问数）
+├── docker/             # docker-compose (MySQL/ES/Kibana/Qdrant/TEI)
+├── frontend/           # React chat frontend (own package.json, managed with pnpm)
+├── prompts/            # 8 LLM prompt templates
+├── tests/              # pytest unit tests (45)
+└── docs/               # Feature docs (SQL safety, multi-turn queries)
 ```
 
-## 快速开始
+## 🚀 Getting Started
 
-### 1. 启动基础设施
+The repository ships with a local development environment you can start directly. Follow the steps below in order.
+
+### 1. Prerequisites
+
+- Python >= 3.14
+- [uv](https://docs.astral.sh/uv/)
+- Docker & Docker Compose
+- Node.js & pnpm
+
+### 2. Clone the project
+
+```bash
+git clone https://github.com/didilili/shopkeeper-agent.git
+cd shopkeeper-agent
+```
+
+### 3. Install backend dependencies
+
+```bash
+uv sync
+```
+
+### 4. Configure the LLM API key
+
+```bash
+cp .env.example .env
+```
+
+Replace `LLM_API_KEY` in `.env` with your real key:
+
+```bash
+LLM_API_KEY=your_real_api_key
+```
+
+The LLM is accessed through an OpenAI-compatible API, configured in `conf/app_config.yaml`:
+
+```yaml
+llm:
+  model_name: <model name>
+  api_key: ${oc.env:LLM_API_KEY}
+  base_url: <OpenAI-compatible API base URL>
+```
+
+To switch to another OpenAI-compatible model platform, just change `model_name` and `base_url`. Database connections and other settings also live in `conf/app_config.yaml`.
+
+### 5. Prepare the embedding model
+
+The project serves BAAI/bge-large-zh-v1.5 via TEI. The model files are too large to commit to the repository, so download them into the Docker mount directory first:
+
+```bash
+uv run hf download BAAI/bge-large-zh-v1.5 --local-dir docker/embedding/bge-large-zh-v1.5
+```
+
+If you download manually, extract the files into `docker/embedding/bge-large-zh-v1.5`.
+
+### 6. Start the Docker infrastructure
 
 ```bash
 docker compose -f docker/docker-compose.yaml up -d
 ```
 
-包含 MySQL 8、Elasticsearch 8、Kibana、Qdrant、TEI Embedding 服务
-（bge-large-zh-v1.5，arm64 CPU 镜像）。
+Default ports:
 
-### 2. 配置环境变量
+| Service | Port |
+|---------|------|
+| MySQL | 3306 |
+| Elasticsearch | 9200 |
+| Kibana | 5601 |
+| Qdrant | 6333 |
+| Embedding (TEI) | 8081 |
 
-项目根目录创建 `.env`（已被 gitignore）：
+`docker/mysql/meta.sql` and `docker/mysql/dw.sql` automatically initialize the metadata database and the demo data warehouse on the MySQL container's first start.
+
+### 7. Build the metadata knowledge base
 
 ```bash
-LLM_API_KEY=<你的 LLM API Key>
-```
-
-数据库连接等其余配置见 `conf/app_config.yaml`。
-
-### 3. 安装依赖并构建元数据知识库
-
-```bash
-uv sync
 uv run python -m app.scripts.build_meta_knowledge -c conf/meta_config.yaml
 ```
 
-### 4. 启动后端
+This writes table/field metadata into MySQL, field and metric vectors into Qdrant, and real field values into Elasticsearch.
+
+### 8. Start the backend
 
 ```bash
-uv run uvicorn main:app --host 127.0.0.1 --port 8000
+uv run fastapi dev main.py
 ```
 
-### 5. 启动前端
+The backend endpoint is `POST http://127.0.0.1:8000/api/query` — see the [API](#api) section below.
+
+### 9. Start the frontend
 
 ```bash
 cd frontend
@@ -116,41 +175,43 @@ pnpm install
 pnpm dev
 ```
 
-访问 http://localhost:5173 ，开发代理自动把 `/api` 转发到后端 8000 端口。
+Open http://localhost:5173 — the Vite dev proxy forwards `/api` to http://127.0.0.1:8000 by default. To change it:
+
+```bash
+cd frontend
+cp .env.example .env
+```
+
+then edit `VITE_DEV_PROXY_TARGET` in `.env`.
 
 ## API
 
 ### `POST /api/query`
 
-请求体：
+Request body:
 
 ```json
-{"query": "统计全国各分类商品去年卖了多少钱？", "session_id": "可选，追问时回传"}
+{"query": "What was last year's revenue per product category nationwide?", "session_id": "optional, pass back for follow-ups"}
 ```
 
-响应为 SSE 流，事件类型：
+The response is an SSE stream with the following event types:
 
-| 事件 | 说明 |
-|------|------|
-| `{"type":"session","session_id":"..."}` | 首事件，下发会话 id（追问时回传以启用多轮上下文） |
-| `{"type":"progress","step":"...","status":"running/success/error"}` | 各节点执行进度 |
-| `{"type":"result","data":[...]}` | 查询结果（字典列表） |
-| `{"type":"error","message":"..."}` | 错误信息 |
+| Event | Description |
+|-------|-------------|
+| `{"type":"session","session_id":"..."}` | First event, delivers the session id (pass it back on follow-ups to enable multi-turn context) |
+| `{"type":"progress","step":"...","status":"running/success/error"}` | Per-node execution progress |
+| `{"type":"result","data":[...]}` | Query result (list of dicts) |
+| `{"type":"error","message":"..."}` | Error message |
 
-## 测试
+## Testing
 
 ```bash
 uv run pytest -v
 ```
 
-覆盖 SQL 安全检查（只读/黑名单/超时/行数）、会话存储、问题改写节点、
-仓储层与 API 契约，共 45 个用例。
+Covers SQL safety checks (read-only/blacklist/timeout/row limit), session storage, the question-rewriting node, the repository layer, and the API contract — 45 tests in total.
 
-## 文档
-
-- [SQL 安全防护](docs/sql_safety.md) — 四层防护机制与配置
-- [多轮问数](docs/multi_turn_query.md) — 会话契约与改写机制
 
 ## License
 
-> TODO: 尚未添加开源许可证。
+This project is licensed under the [MIT License](LICENSE).

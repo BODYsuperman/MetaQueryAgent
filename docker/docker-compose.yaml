@@ -4,9 +4,9 @@ services:
     container_name: mysql-new
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: test123
-      MYSQL_USER: test123
-      MYSQL_PASSWORD: test123
+      MYSQL_ROOT_PASSWORD: yourpassword
+      MYSQL_USER: yourpassword
+      MYSQL_PASSWORD: yourpassword
     ports:
       - "3306:3306"
     volumes:
