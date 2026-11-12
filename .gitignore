@@ -61,6 +61,7 @@ Thumbs.db
 # Local TEI embedding model files (large)
 docker/embedding/
 
-plans/*
-superpowers/*
+# 过程文档（计划/设计稿）不进仓库，功能文档 docs/*.md 保留
+docs/plans/
+docs/superpowers/
 
