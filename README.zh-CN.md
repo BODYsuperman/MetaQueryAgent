@@ -91,8 +91,8 @@ data-agent/
 ### 2. 克隆项目
 
 ```bash
-git clone https://github.com/didilili/shopkeeper-agent.git
-cd shopkeeper-agent
+git clone https://github.com/BODYsuperman/MetaQueryAgent.git
+cd project directory
 ```
 
 ### 3. 安装后端依赖

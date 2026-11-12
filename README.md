@@ -90,8 +90,8 @@ The repository ships with a local development environment you can start directly
 ### 2. Clone the project
 
 ```bash
-git clone https://github.com/didilili/shopkeeper-agent.git
-cd shopkeeper-agent
+git clone https://github.com/BODYsuperman/MetaQueryAgent.git
+cd project directory
 ```
 
 ### 3. Install backend dependencies
