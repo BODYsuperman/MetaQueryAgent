@@ -38,6 +38,11 @@ es:
   port: 9200
   index_name: data_agent
 
+sql_safety:
+  enabled: true
+  timeout_seconds: 30
+  max_rows: 1000
+
 llm:
   model_name: qwen3.8-max
   api_key: sk-sp-H.DHDIYI.asRG.MEUCIQCsHne-prjTeamTYfsvIkBUz24h5hSviaiBeOjHzmF_kQIgSK0RS9EEvi5jVADbyfp813ggEhnRsiXUsA7_grt4CKg

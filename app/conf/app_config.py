@@ -6,7 +6,7 @@
 就可以按属性方式读取日志 MySQL Qdrant Embedding Elasticsearch 和 LLM 配置
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -87,6 +87,26 @@ class LLMConfig:
     base_url: str
 
 
+# SQL 安全检查的默认黑名单关键字，配置文件中不显式配置时使用这份名单
+DEFAULT_BLACKLIST = [
+    "INSERT", "UPDATE", "DELETE", "DROP", "TRUNCATE", "ALTER", "CREATE",
+    "RENAME", "GRANT", "REVOKE", "CALL", "EXECUTE", "LOAD", "HANDLER",
+    "OUTFILE", "DUMPFILE", "LOAD_FILE", "SLEEP", "BENCHMARK",
+]
+
+
+@dataclass
+class SqlSafetyConfig:
+    """SQL 安全防护配置：只读限制 黑名单关键字 查询超时 结果行数限制"""
+
+    enabled: bool = True
+    timeout_seconds: int = 30
+    max_rows: int = 1000
+    blacklisted_keywords: list[str] = field(
+        default_factory=lambda: list(DEFAULT_BLACKLIST)
+    )
+
+
 @dataclass
 class AppConfig:
     """项目级总配置入口"""
@@ -98,6 +118,7 @@ class AppConfig:
     embedding: EmbeddingConfig
     es: ESConfig
     llm: LLMConfig
+    sql_safety: SqlSafetyConfig
 
 
 # 从当前文件位置回到项目根目录，再定位到 conf/app_config.yaml
