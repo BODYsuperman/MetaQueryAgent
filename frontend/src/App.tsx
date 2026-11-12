@@ -7,7 +7,7 @@ import {
   BarChart3,
   Eraser,
   History,
-  Leaf,
+  LoaderCircle,
   MessageSquarePlus,
   Server,
 } from "lucide-react";
@@ -26,7 +26,7 @@ const examples = [
   "按会员等级统计 2025 年第一季度的订单数和销售额",
 ];
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "Vite /api proxy";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "Vite /api 代理";
 
 function makeId() {
   return crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -78,7 +78,7 @@ export default function App() {
     const assistantMessage: ChatMessage = {
       id: assistantId,
       role: "assistant",
-      content: "Connecting to the Meta Query agent for data...",
+      content: "正在连接问数智能体…",
       createdAt: Date.now(),
       status: "streaming",
       steps: [],
@@ -160,21 +160,17 @@ export default function App() {
   };
 
   return (
-    <div className="h-dvh overflow-hidden bg-parchment text-ink">
-      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(90deg,rgba(32,32,29,0.045)_1px,transparent_1px),linear-gradient(rgba(32,32,29,0.035)_1px,transparent_1px)] bg-[size:48px_48px]" />
-      <div className="pointer-events-none fixed inset-0 grain" />
-
-      <div className="relative grid h-full min-h-0 overflow-hidden lg:grid-cols-[300px_minmax(0,1fr)]">
-        <aside className="hidden min-h-0 border-r border-ink/10 bg-[#efe6d8]/85 backdrop-blur lg:flex lg:flex-col">
-          <div className="border-b border-ink/10 px-5 py-5">
-            <div className="flex items-center gap-3">
-              <div className="grid h-10 w-10 place-items-center bg-ink text-parchment">
-                <BarChart3 className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <div>
-                <div className="text-base font-semibold tracking-[0.02em]">E-commerce Agent</div>
-                <div className="text-xs text-ink/50">MetaQuery Agent</div>
-              </div>
+    <div className="h-dvh overflow-hidden bg-bg text-ink">
+      <div className="grid h-full min-h-0 overflow-hidden md:grid-cols-[280px_minmax(0,1fr)]">
+        <aside className="hidden min-h-0 flex-col bg-surface border-r border-border md:flex">
+          {/* 品牌区 */}
+          <div className="flex items-center gap-3 border-b border-border px-5 py-4">
+            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary text-white">
+              <BarChart3 className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <div className="min-w-0">
+              <div className="truncate text-sm font-semibold">掌柜问数</div>
+              <div className="truncate text-xs text-faint">AI 数据分析助手</div>
             </div>
           </div>
 
@@ -183,16 +179,16 @@ export default function App() {
               type="button"
               onClick={clearConversation}
               disabled={isStreaming}
-              className="flex h-11 w-full items-center justify-center gap-2 bg-ink text-sm font-semibold text-parchment transition hover:bg-soot disabled:cursor-not-allowed disabled:bg-ink/35"
+              className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-medium text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-40"
             >
               <MessageSquarePlus className="h-4 w-4" aria-hidden="true" />
-              New Conversation
+              新对话
             </button>
 
             <section>
-              <div className="mb-2 flex items-center gap-2 px-1 text-xs font-semibold uppercase tracking-[0.16em] text-ink/45">
+              <div className="mb-2 flex items-center gap-1.5 px-1 text-xs font-medium text-faint">
                 <History className="h-3.5 w-3.5" aria-hidden="true" />
-                Samples
+                示例问题
               </div>
               <div className="space-y-2">
                 {examples.map((example) => (
@@ -201,7 +197,7 @@ export default function App() {
                     type="button"
                     disabled={isStreaming}
                     onClick={() => startQuery(example)}
-                    className="w-full border border-ink/10 bg-white/42 px-3 py-3 text-left text-sm leading-5 text-ink/75 transition hover:border-moss/35 hover:bg-white/75 disabled:cursor-not-allowed disabled:opacity-55"
+                    className="w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-left text-[13px] leading-5 text-muted transition hover:border-primary/40 hover:bg-primary-soft hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {example}
                   </button>
@@ -210,35 +206,33 @@ export default function App() {
             </section>
           </div>
 
-          <div className="border-t border-ink/10 p-4">
-            <div className="grid gap-2 text-xs text-ink/55">
-              <div className="flex items-center justify-between gap-3">
-                <span className="inline-flex items-center gap-2">
-                  <Server className="h-3.5 w-3.5" aria-hidden="true" />
-                  API
-                </span>
-                <span className="truncate font-mono">{API_BASE_URL}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="inline-flex items-center gap-2">
-                  <Activity className="h-3.5 w-3.5" aria-hidden="true" />
-                  完成
-                </span>
-                <span>{completedCount}</span>
-              </div>
+          <div className="space-y-1.5 border-t border-border px-5 py-3.5 text-xs text-faint">
+            <div className="flex items-center justify-between gap-3">
+              <span className="inline-flex shrink-0 items-center gap-1.5">
+                <Server className="h-3.5 w-3.5" aria-hidden="true" />
+                接口
+              </span>
+              <span className="truncate font-mono text-[11px]">{API_BASE_URL}</span>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="inline-flex items-center gap-1.5">
+                <Activity className="h-3.5 w-3.5" aria-hidden="true" />
+                已完成查询
+              </span>
+              <span className="tabular-nums">{completedCount}</span>
             </div>
           </div>
         </aside>
 
         <main className="flex min-h-0 min-w-0 flex-col overflow-hidden">
-          <header className="flex h-16 shrink-0 items-center justify-between border-b border-ink/10 bg-parchment/88 px-4 backdrop-blur lg:px-6">
+          <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-surface/90 px-4 backdrop-blur lg:px-6">
             <div className="flex min-w-0 items-center gap-3">
-              <div className="grid h-9 w-9 shrink-0 place-items-center bg-moss text-white lg:hidden">
+              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary text-white md:hidden">
                 <BarChart3 className="h-4 w-4" aria-hidden="true" />
               </div>
               <div className="min-w-0">
-                <div className="truncate text-sm font-semibold text-ink">Intelligent data analysis Agent</div>
-                <div className="truncate text-xs text-ink/45">FastAPI SSE / LangGraph</div>
+                <div className="truncate text-sm font-semibold">智能问数</div>
+                <div className="truncate text-xs text-faint">FastAPI SSE · LangGraph</div>
               </div>
             </div>
             <button
@@ -246,10 +240,10 @@ export default function App() {
               onClick={clearConversation}
               disabled={messages.length === 0 || isStreaming}
               className={cn(
-                "grid h-9 w-9 place-items-center rounded-full text-ink/55 transition hover:bg-ink/5 hover:text-ink disabled:cursor-not-allowed disabled:opacity-35",
+                "grid h-8 w-8 place-items-center rounded-lg text-muted transition hover:bg-bg hover:text-ink disabled:cursor-not-allowed disabled:opacity-35",
               )}
-              title="清空"
-              aria-label="清空"
+              title="清空对话"
+              aria-label="清空对话"
             >
               <Eraser className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -259,7 +253,7 @@ export default function App() {
             {messages.length === 0 ? (
               <EmptyState examples={examples} onUseExample={(example) => setDraft(example)} />
             ) : (
-              <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 lg:px-8">
+              <div className="mx-auto flex max-w-3xl flex-col gap-5 px-4 py-6 lg:px-8">
                 {messages.map((message) => (
                   <MessageBubble key={message.id} message={message} />
                 ))}
@@ -267,12 +261,12 @@ export default function App() {
             )}
           </div>
 
-          <div className="border-t border-ink/10 bg-[#efe6d8]/45 px-4 py-2 text-center text-xs text-ink/45">
-            <span className="inline-flex items-center gap-2">
-              <Leaf className="h-3.5 w-3.5 text-moss" aria-hidden="true" />
-              {isStreaming ? "运行中" : "Ready"}
-            </span>
-          </div>
+          {isStreaming && (
+            <div className="flex items-center justify-center gap-2 border-t border-border bg-primary-soft px-4 py-1.5 text-xs font-medium text-primary">
+              <LoaderCircle className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+              正在查询…
+            </div>
+          )}
           <Composer
             value={draft}
             disabled={!canSubmit}
