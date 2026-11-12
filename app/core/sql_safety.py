@@ -30,10 +30,12 @@ class SqlSafetyChecker:
 
     def __init__(self, config: SqlSafetyConfig):
         self.config = config
-        # 名单为空时不做黑名单扫描
+        # 名单为空时不做黑名单扫描；关键字按字面量转义，防止配置中的正则元字符改变语义
         if config.blacklisted_keywords:
             self._blacklist_pattern = re.compile(
-                r"\b(" + "|".join(config.blacklisted_keywords) + r")\b",
+                r"\b("
+                + "|".join(re.escape(kw) for kw in config.blacklisted_keywords)
+                + r")\b",
                 re.IGNORECASE,
             )
         else:
