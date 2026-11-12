@@ -19,15 +19,19 @@ log_format = (
 
 # 通过 Loguru patch 钩子，把上下文中的 request_id 写入每条日志的 extra 字段
 def inject_request_id(record):
+    """把上下文中的 request_id 注入到每条日志的 extra 字段"""
+    # 从当前异步上下文中读取 request_id
     request_id = request_id_ctx_var.get()
-    record["extra"]["request_id"] = request_id
 
+    # extra 是 loguru 预留给自定义字段的位置
+    record["extra"]["request_id"] = request_id
 
 # 移除 Loguru 默认的输出目标，避免和项目自定义配置重复打印
 logger.remove()
 
-# 生成带 request_id 注入能力的 logger，后续业务代码统一使用这个实例
-logger = logger.patch(inject_request_id)
+# 全局注册 request_id 注入钩子：无论业务代码使用 `from loguru import logger`
+# 还是本模块导出的 logger，所有日志记录都会经过该 patcher，避免 extra 缺字段
+logger.configure(patcher=inject_request_id)
 
 # 根据配置决定是否输出控制台日志，适合本地开发和容器标准输出采集
 if app_config.logging.console.enable:
@@ -50,25 +54,25 @@ if app_config.logging.file.enable:
         encoding="utf-8",
     )
 
-if __name__ == '__main__':
-
-    async def print_log(request:str):
-
-        logger.info(request)
-
-    async def test1():
-        request_id_ctx_var.set("request-1")
-
-        await asyncio.sleep(1)
-        await print_log("request-1")
-
-
-    async def test2():
-        request_id_ctx_var.set("request-2")
-
-        await asyncio.sleep(1)
-        await print_log("request-2")
-    async def main():
-        await asyncio.gather(test1(), test2())
-
-    asyncio.run(main())
+# if __name__ == '__main__':
+#
+#     async def print_log(request:str):
+#
+#         logger.info(request)
+#
+#     async def test1():
+#         request_id_ctx_var.set("request-1")
+#
+#         await asyncio.sleep(1)
+#         await print_log("request-1")
+#
+#
+#     async def test2():
+#         request_id_ctx_var.set("request-2")
+#
+#         await asyncio.sleep(1)
+#         await print_log("request-2")
+#     async def main():
+#         await asyncio.gather(test1(), test2())
+#
+#     asyncio.run(main())
