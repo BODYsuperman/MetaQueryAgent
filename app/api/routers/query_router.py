@@ -20,7 +20,7 @@ async  def query_handler(
                          ):
 
     return StreamingResponse(
-        query_service.query(query_schema.query),
+        query_service.query(query_schema.query, query_schema.session_id),
         media_type="text/event-stream")
 
 

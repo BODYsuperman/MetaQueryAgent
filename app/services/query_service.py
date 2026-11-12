@@ -1,4 +1,6 @@
 import json
+from dataclasses import asdict
+from uuid import uuid4
 
 from langchain_huggingface import HuggingFaceEndpointEmbeddings
 
@@ -14,6 +16,7 @@ from app.repositories.mysql.dw.dw_mysql_repository import DWMySQLRepository
 from app.repositories.mysql.meta.meta_mysql_repository import MetaMySQLRepository
 from app.repositories.qdrant.column_qdrant_repository import ColumnQdrantRepository
 from app.repositories.qdrant.metric_qdrant_repository import MetricQdrantRepository
+from app.services.session_store import session_store
 
 
 class QueryService:
@@ -37,13 +40,26 @@ class QueryService:
         self.metric_qdrant_repository = metric_qdrant_repository
         self.value_es_repository = value_es_repository
 
-    async def query(self, query: str):
+    async def query(self, query: str, session_id: str | None = None):
+        # 不带 session_id 视为新会话，生成后通过首个 SSE 事件下发给前端保存
+        if not session_id:
+            session_id = uuid4().hex
+        yield f'data: {json.dumps({"type": "session", "session_id": session_id}, ensure_ascii=False)}\n\n'
+
+        # 本轮开始时的历史快照，供 rewrite_query 节点把追问改写成自包含问题
+        history = [asdict(r) for r in session_store.get_history(session_id)]
+
         # Meta MySQL 用来补齐元数据，DW MySQL 用来读取数据库方言和版本
         async with (
             meta_mysql_client_manager.session_factory() as meta_session,
             dw_mysql_client_manager.session_factory() as dw_session,
         ):
-            state = DataAgentState(query=query)
+            state = DataAgentState(
+                query=query,
+                original_query=query,
+                session_id=session_id,
+                history=history,
+            )
 
             meta_mysql_repository = MetaMySQLRepository(meta_session)
             dw_mysql_repository = DWMySQLRepository(dw_session)
