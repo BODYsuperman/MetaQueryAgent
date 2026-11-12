@@ -188,8 +188,8 @@ export default function App() {
               <BarChart3 className="h-5 w-5" aria-hidden="true" />
             </div>
             <div className="min-w-0">
-              <div className="truncate text-sm font-semibold">掌柜问数</div>
-              <div className="truncate text-xs text-faint">AI 数据分析助手</div>
+              <div className="truncate text-sm font-semibold">MetaQuery Agent</div>
+              <div className="truncate text-xs text-faint">AI Intelligent data analysis</div>
             </div>
           </div>
 
@@ -201,13 +201,13 @@ export default function App() {
               className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-medium text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-40"
             >
               <MessageSquarePlus className="h-4 w-4" aria-hidden="true" />
-              新对话
+              New Chat
             </button>
 
             <section>
               <div className="mb-2 flex items-center gap-1.5 px-1 text-xs font-medium text-faint">
                 <History className="h-3.5 w-3.5" aria-hidden="true" />
-                示例问题
+                example questions
               </div>
               <div className="space-y-2">
                 {examples.map((example) => (
@@ -229,7 +229,7 @@ export default function App() {
             <div className="flex items-center justify-between gap-3">
               <span className="inline-flex shrink-0 items-center gap-1.5">
                 <Server className="h-3.5 w-3.5" aria-hidden="true" />
-                接口
+                interface
               </span>
               <span className="truncate font-mono text-[11px]">{API_BASE_URL}</span>
             </div>
@@ -250,7 +250,7 @@ export default function App() {
                 <BarChart3 className="h-4 w-4" aria-hidden="true" />
               </div>
               <div className="min-w-0">
-                <div className="truncate text-sm font-semibold">智能问数</div>
+                <div className="truncate text-sm font-semibold">Intelligent MetaQuery Agent</div>
                 <div className="truncate text-xs text-faint">FastAPI SSE · LangGraph</div>
               </div>
             </div>
@@ -263,7 +263,7 @@ export default function App() {
                 className="flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-40 md:hidden"
               >
                 <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />
-                新对话
+                New Conversation
               </button>
               <button
                 type="button"

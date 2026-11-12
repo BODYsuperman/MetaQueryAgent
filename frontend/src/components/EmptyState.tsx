@@ -10,9 +10,9 @@ type EmptyStateProps = {
 };
 
 const highlights = [
-  { label: "混合检索", icon: Search },
-  { label: "SQL 闭环", icon: LineChart },
-  { label: "电商数仓", icon: ShoppingBag },
+  { label: "Mixed Search", icon: Search },
+  { label: "SQL Closed Loop", icon: LineChart },
+  { label: "E-commerce data warehouse", icon: ShoppingBag },
 ];
 
 export function EmptyState({ examples, onUseExample }: EmptyStateProps) {
@@ -22,9 +22,9 @@ export function EmptyState({ examples, onUseExample }: EmptyStateProps) {
         <div className="mb-4 grid h-14 w-14 place-items-center rounded-lg bg-primary-soft text-primary">
           <BarChart3 className="h-7 w-7" aria-hidden="true" />
         </div>
-        <h1 className="text-[28px] font-semibold leading-tight">掌柜问数</h1>
+        <h1 className="text-[28px] font-semibold leading-tight">MetaQuery Agent</h1>
         <p className="mt-2 text-sm text-muted">
-          用自然语言查询电商数据仓库，自动生成并执行 SQL
+          用自然语言查询电商数据仓库，自动生成并执行 SQL(Use natural language to query e-commerce data warehouses, automatically generate and execute them)
         </p>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
           {highlights.map((item) => {
