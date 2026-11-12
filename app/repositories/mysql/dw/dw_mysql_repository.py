@@ -48,6 +48,12 @@ class DWMySQLRepository:
         dialect = self.session.bind.dialect.name
         return {"dialect": dialect, "version": version}
 
+    @staticmethod
+    def _timeout():
+        """enabled=False 时返回 None，asyncio.wait_for(None) 即不限时"""
+        cfg = app_config.sql_safety
+        return cfg.timeout_seconds if cfg.enabled else None
+
     async def _set_execution_timeout(self):
         """设置 MySQL 服务端查询超时（毫秒），只对 SELECT 生效，与只读约束吻合"""
         timeout_ms = app_config.sql_safety.timeout_seconds * 1000
@@ -59,11 +65,12 @@ class DWMySQLRepository:
         """用 EXPLAIN 让数据库提前解析 SQL，发现语法 表名 字段名等错误"""
         # 安全检查统一放在仓储层咽喉点，correct_sql 直通 run_sql 的路径也无法绕过
         sql_safety_checker.check(sql)
-        await self._set_execution_timeout()
+        if app_config.sql_safety.enabled:
+            await self._set_execution_timeout()
         try:
             await asyncio.wait_for(
                 self.session.execute(text(f"explain {sql}")),
-                app_config.sql_safety.timeout_seconds,
+                self._timeout(),
             )
         except asyncio.TimeoutError:
             raise SqlSafetyError(
@@ -75,16 +82,22 @@ class DWMySQLRepository:
         sql_safety_checker.check(sql)
         # 改写 LIMIT 保证服务端最多产出 max_rows 行
         sql = sql_safety_checker.apply_row_limit(sql)
-        await self._set_execution_timeout()
+        if app_config.sql_safety.enabled:
+            await self._set_execution_timeout()
         try:
             result = await asyncio.wait_for(
                 self.session.execute(text(sql)),
-                app_config.sql_safety.timeout_seconds,
+                self._timeout(),
             )
         except asyncio.TimeoutError:
             raise SqlSafetyError(
                 f"查询执行超时，已终止（限制 {app_config.sql_safety.timeout_seconds} 秒）"
             )
-        # fetchmany 截断是行数限制的最后一道保险
-        rows = result.mappings().fetchmany(app_config.sql_safety.max_rows)
+        # fetchmany 截断是行数限制的最后一道保险；enabled=False 时完全旁路
+        mappings = result.mappings()
+        rows = (
+            mappings.fetchmany(app_config.sql_safety.max_rows)
+            if app_config.sql_safety.enabled
+            else mappings.fetchall()
+        )
         return [dict(row) for row in rows]

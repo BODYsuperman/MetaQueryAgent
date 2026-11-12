@@ -33,6 +33,9 @@ async def validate_sql(state: DataAgentState, runtime: Runtime[DataAgentContext]
             writer({"type": "progress", "step": step, "status": "success"})
             return {"error": str(e)}
 
+    except SqlSafetyError:
+        # 内层已记录日志并发出 error 事件，直接透传避免重复
+        raise
     except Exception as e:
         logger.error(f"{step} failed: {e}")
         writer({"type": "progress", "step": step, "status": "error"})

@@ -57,3 +57,22 @@ async def test_run_timeout_raises_safety_error():
     repo = DWMySQLRepository(session)
     with pytest.raises(SqlSafetyError):
         await repo.run("select 1")
+
+
+async def test_disabled_run_skips_timeout_and_row_cap(monkeypatch):
+    from app.conf.app_config import app_config
+
+    # 逃生口：enabled=False 时规格要求全部检查跳过（含超时与行数截断）
+    monkeypatch.setattr(app_config.sql_safety, "enabled", False)
+    session = AsyncMock()
+    result = MagicMock()
+    result.mappings.return_value.fetchall.return_value = [{"id": 1}]
+    session.execute.return_value = result
+    repo = DWMySQLRepository(session)
+
+    rows = await repo.run("delete from fact_order")
+
+    assert rows == [{"id": 1}]
+    executed = [str(c.args[0].text) for c in session.execute.call_args_list]
+    assert not any("max_execution_time" in s for s in executed)
+    result.mappings.return_value.fetchall.assert_called_once()
