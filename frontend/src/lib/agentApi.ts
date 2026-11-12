@@ -8,6 +8,8 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") ?? ""
 
 type QueryOptions = {
   signal?: AbortSignal;
+  // 已有会话时回传，后端据此带上多轮上下文；首轮不传，请求体与旧版完全一致
+  sessionId?: string;
   onEvent: (event: AgentEvent) => void;
 };
 
@@ -18,7 +20,11 @@ export async function streamQuery(query: string, options: QueryOptions) {
       "Content-Type": "application/json",
       Accept: "text/event-stream",
     },
-    body: JSON.stringify({ query }),
+    body: JSON.stringify(
+      options.sessionId
+        ? { query, session_id: options.sessionId }
+        : { query },
+    ),
     signal: options.signal,
   });
 

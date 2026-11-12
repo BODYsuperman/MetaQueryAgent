@@ -46,6 +46,8 @@ export default function App() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [activeController, setActiveController] = useState<AbortController | null>(null);
+  // 后端 session 事件下发的会话 id，追问时回传以获得多轮上下文
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const isStreaming = Boolean(activeController);
@@ -90,6 +92,12 @@ export default function App() {
     setMessages((current) => [...current, userMessage, assistantMessage]);
 
     const onEvent = (event: AgentEvent) => {
+      // 会话 id 事件只保存，不触碰消息内容
+      if (event.type === "session") {
+        setSessionId(event.session_id);
+        return;
+      }
+
       setMessages((current) =>
         current.map((message) => {
           if (message.id !== assistantId) return message;
@@ -111,18 +119,27 @@ export default function App() {
             };
           }
 
-          return {
-            ...message,
-            status: "error",
-            content: "这次查询没有成功。",
-            error: event.message,
-          };
+          if (event.type === "error") {
+            return {
+              ...message,
+              status: "error",
+              content: "这次查询没有成功。",
+              error: event.message,
+            };
+          }
+
+          // 未知事件类型：忽略，避免误报错误
+          return message;
         }),
       );
     };
 
     try {
-      await streamQuery(query, { signal: controller.signal, onEvent });
+      await streamQuery(query, {
+        signal: controller.signal,
+        sessionId: sessionId ?? undefined,
+        onEvent,
+      });
       setMessages((current) =>
         current.map((message) =>
           message.id === assistantId && message.status === "streaming"
@@ -157,6 +174,8 @@ export default function App() {
     if (isStreaming) return;
     setMessages([]);
     setDraft("");
+    // 新对话丢弃旧会话 id，下一次请求由后端重新下发
+    setSessionId(null);
   };
 
   return (

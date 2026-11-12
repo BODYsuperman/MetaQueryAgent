@@ -20,7 +20,13 @@ export type ErrorEvent = {
   message: string;
 };
 
-export type AgentEvent = ProgressEvent | ResultEvent | ErrorEvent;
+// 后端 SSE 首事件：下发本次会话 id，追问时回传即可启用多轮上下文
+export type SessionEvent = {
+  type: "session";
+  session_id: string;
+};
+
+export type AgentEvent = ProgressEvent | ResultEvent | ErrorEvent | SessionEvent;
 
 export type StepState = {
   step: string;
