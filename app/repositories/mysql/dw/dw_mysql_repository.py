@@ -7,8 +7,13 @@
 SQL 生成闭环中的数据库环境读取 SQL 校验和最终查询执行也集中放在这里
 """
 
+import asyncio
+
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.conf.app_config import app_config
+from app.core.sql_safety import SqlSafetyError, sql_safety_checker
 
 
 class DWMySQLRepository:
@@ -43,12 +48,43 @@ class DWMySQLRepository:
         dialect = self.session.bind.dialect.name
         return {"dialect": dialect, "version": version}
 
+    async def _set_execution_timeout(self):
+        """设置 MySQL 服务端查询超时（毫秒），只对 SELECT 生效，与只读约束吻合"""
+        timeout_ms = app_config.sql_safety.timeout_seconds * 1000
+        await self.session.execute(
+            text(f"SET SESSION max_execution_time = {timeout_ms}")
+        )
+
     async def validate(self, sql: str):
         """用 EXPLAIN 让数据库提前解析 SQL，发现语法 表名 字段名等错误"""
-        sql = f"explain {sql}"
-        await self.session.execute(text(sql))
+        # 安全检查统一放在仓储层咽喉点，correct_sql 直通 run_sql 的路径也无法绕过
+        sql_safety_checker.check(sql)
+        await self._set_execution_timeout()
+        try:
+            await asyncio.wait_for(
+                self.session.execute(text(f"explain {sql}")),
+                app_config.sql_safety.timeout_seconds,
+            )
+        except asyncio.TimeoutError:
+            raise SqlSafetyError(
+                f"查询执行超时，已终止（限制 {app_config.sql_safety.timeout_seconds} 秒）"
+            )
 
     async def run(self, sql: str) -> list[dict]:
         """执行最终 SQL，并把 SQLAlchemy 行对象转换成前端更易消费的字典列表"""
-        result = await self.session.execute(text(sql))
-        return [dict(row) for row in result.mappings().fetchall()]
+        sql_safety_checker.check(sql)
+        # 改写 LIMIT 保证服务端最多产出 max_rows 行
+        sql = sql_safety_checker.apply_row_limit(sql)
+        await self._set_execution_timeout()
+        try:
+            result = await asyncio.wait_for(
+                self.session.execute(text(sql)),
+                app_config.sql_safety.timeout_seconds,
+            )
+        except asyncio.TimeoutError:
+            raise SqlSafetyError(
+                f"查询执行超时，已终止（限制 {app_config.sql_safety.timeout_seconds} 秒）"
+            )
+        # fetchmany 截断是行数限制的最后一道保险
+        rows = result.mappings().fetchmany(app_config.sql_safety.max_rows)
+        return [dict(row) for row in rows]
