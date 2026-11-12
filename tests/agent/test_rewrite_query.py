@@ -58,7 +58,11 @@ async def test_with_history_rewrites_query(monkeypatch):
 
 async def test_blank_llm_output_keeps_original(monkeypatch):
     monkeypatch.setattr(rq, "llm", fake_llm([], output="   "))
+    runtime = make_runtime()
     result = await rewrite_query(
-        {"query": "那上个月呢？", "history": HISTORY}, make_runtime()
+        {"query": "那上个月呢？", "history": HISTORY}, runtime
     )
     assert result == {}
+    # 没有发生改写，不得向前端谎报 success
+    statuses = [c.args[0]["status"] for c in runtime.stream_writer.call_args_list]
+    assert "success" not in statuses

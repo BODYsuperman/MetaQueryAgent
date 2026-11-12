@@ -35,3 +35,11 @@ def test_max_sessions_evicts_oldest():
         store.append(f"s{i}", "q", "select 1", [])
     assert store.get_history("s0") == []  # 最旧被淘汰
     assert len(store.get_history("s200")) == 1
+
+
+def test_get_history_returns_copy():
+    store = SessionStore()
+    store.append("s1", "q", "select 1", [])
+    history = store.get_history("s1")
+    history.clear()  # 调用方改动返回值不得污染存储
+    assert len(store.get_history("s1")) == 1

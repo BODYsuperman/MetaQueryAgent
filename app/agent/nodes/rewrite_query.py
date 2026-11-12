@@ -49,9 +49,9 @@ async def rewrite_query(state: DataAgentState, runtime: Runtime[DataAgentContext
 
         rewritten = res.strip()
         if not rewritten:
-            # 模型输出异常（空/纯空白）时保留原问题，不把空串写进状态
+            # 模型输出异常（空/纯空白）时保留原问题，不把空串写进状态；
+            # 没有发生改写就不发 success，避免前端误示"已改写"
             logger.warning("改写结果为空，保留原问题")
-            writer({"type": "progress", "step": step, "status": "success"})
             return {}
 
         logger.info(f"改写后的问题：{rewritten}")

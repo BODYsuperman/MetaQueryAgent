@@ -51,8 +51,8 @@ class SessionStore:
             del self._sessions[oldest]
 
     def get_history(self, session_id: str) -> list[TurnRecord]:
-        """读取会话历史，无会话返回空列表"""
-        return self._sessions.get(session_id, [])
+        """读取会话历史，无会话返回空列表；返回副本，调用方改动不污染存储"""
+        return list(self._sessions.get(session_id, []))
 
 
 # 模块级单例，与 sql_safety_checker、client_manager 的现有模式一致
