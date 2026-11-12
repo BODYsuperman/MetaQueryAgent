@@ -2,7 +2,7 @@
 
 支持基于上一次结果继续追问：系统记住每个会话最近几轮的问答，把
 "那上个月呢？""哪个分类最高？"这类追问改写成自包含问题后走原有链路。
-设计细节见[设计文档](superpowers/specs/2026-11-12-multi-turn-query-design.md)。
+设计细节见[设计文档](superpowers/specs/*.md)。
 
 ## API 契约
 

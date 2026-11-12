@@ -3,7 +3,7 @@
 对 LLM 生成、面向数仓（dw）执行的 SQL 提供四层防护。所有检查在仓储层
 `DWMySQLRepository.validate()/run()` 入口强制执行，任何调用路径（包括
 `correct_sql → run_sql`）都无法绕过。设计细节见
-[设计文档](superpowers/specs/2026-11-12-sql-safety-design.md)。
+[设计文档](superpowers/specs/*.md)。
 
 ## 四层防护
 
