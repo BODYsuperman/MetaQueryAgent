@@ -51,3 +51,23 @@ def test_unparseable_raises_parse_error_not_safety(checker):
 def test_disabled_skips_all():
     c = SqlSafetyChecker(SqlSafetyConfig(enabled=False))
     c.check("delete from fact_order")  # 不抛异常
+
+
+def test_limit_appended(checker):
+    out = checker.apply_row_limit("select * from fact_order")
+    assert "1000" in out  # LIMIT 1000
+
+
+def test_existing_larger_limit_tightened(checker):
+    out = checker.apply_row_limit("select * from fact_order limit 5000")
+    assert "5000" not in out and "1000" in out
+
+
+def test_existing_smaller_limit_preserved(checker):
+    out = checker.apply_row_limit("select * from fact_order limit 5")
+    assert "5" in out and "1000" not in out
+
+
+def test_limit_disabled():
+    c = SqlSafetyChecker(SqlSafetyConfig(enabled=False))
+    assert c.apply_row_limit("select * from t") == "select * from t"

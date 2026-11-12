@@ -67,8 +67,28 @@ class SqlSafetyChecker:
             raise SqlSafetyError("只允许执行只读SELECT查询")
 
     def apply_row_limit(self, sql: str) -> str:
-        """改写 SQL 的 LIMIT，保证返回行数不超过 max_rows"""
-        return sql
+        """改写 SQL 的 LIMIT，保证返回行数不超过 max_rows
+
+        无 LIMIT 则追加；已有 LIMIT 超过 max_rows 则收紧；
+        已有 LIMIT 不超过 max_rows 时保留原值
+        """
+        if not self.config.enabled:
+            return sql
+
+        expression = sqlglot.parse_one(sql, dialect="mysql")
+        limit = expression.args.get("limit")
+        if limit is not None:
+            try:
+                # LIMIT 字面量时比较大小，非字面量（如占位符）按超限处理
+                current = int(limit.expression.this)
+            except (AttributeError, TypeError, ValueError):
+                current = None
+            if current is not None and current <= self.config.max_rows:
+                return sql
+
+        return expression.limit(self.config.max_rows, dialect="mysql").sql(
+            dialect="mysql"
+        )
 
 
 # 模块级单例，与项目现有 client_manager 的使用模式保持一致
