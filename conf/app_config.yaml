@@ -12,15 +12,15 @@ logging:
 db_meta:
   host: localhost
   port: 3306
-  user: test123
-  password: test123
+  user: setyourown
+  password: setyourown
   database: meta
 
 db_dw:
   host: localhost
   port: 3306
-  user: test123
-  password: test123
+  user: setyourown
+  password: setyourown
   database: dw
 
 qdrant:
@@ -44,6 +44,6 @@ sql_safety:
   max_rows: 1000
 
 llm:
-  model_name: qwen3.8-max
+  model_name: claude-fable-5-2
   api_key: ${oc.env:LLM_API_KEY}
-  base_url: https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1
+  base_url: https://api.anthropic.com
